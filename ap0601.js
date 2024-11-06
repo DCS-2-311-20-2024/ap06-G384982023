@@ -43,6 +43,7 @@ function init() {
   renderer.setClearColor(0x406080);
   renderer.domElement.style.position = "absolute";
   renderer.domElement.style.top = nameHeight;
+  renderer.shadowMap.enabled = true;
   document.getElementById("canvas").appendChild(renderer.domElement);
 
   // CSSRenderer の追加
@@ -65,6 +66,7 @@ function init() {
   // 光源の作成
   const dirLight = new THREE.DirectionalLight(0xffffff, 3);
   dirLight.position.set(20, 35, 10);
+  dirLight.castShadow = true;
   scene.add(dirLight);
 
   const ambLight = new THREE.AmbientLight(0x404040, 20);
@@ -88,9 +90,11 @@ function init() {
   const orbitControls = new OrbitControls(camera, cssRenderer.domElement);
   orbitControls.enableDumping = true;
   orbitControls.minAzimuthAngle = -Math.PI/2;
-  orbitControls.minAzimuthAngle = Math.PI/2;
+  orbitControls.maxAzimuthAngle = Math.PI/2;
   // ディスプレイ
   const display = new THREE.Group();
+  display.castShadow = true;
+  display.receiveShadow = true;
   {
     // 表示部
     const silverMaterial = new THREE.MeshPhongMaterial({color: "silver"});
@@ -101,14 +105,20 @@ function init() {
       silverMaterial, silverMaterial, silverMaterial, 
       silverMaterial, blackMaterial, silverMaterial
       ]
+
     );
+    face.castShadow = true;
+    face.receiveShadow = true;
     display.add(face);
     // スタンド台
     const standBase = new THREE.Mesh(
       new THREE.BoxGeometry(std.W, std.T, std.D),
       silverMaterial
+      
     )
     standBase.position.y = -(dpy.H/4+std.H);
+    standBase.castShadow = true;
+    standBase.receiveShadow = true;
     display.add(standBase);    
     // スタンド脚
     const theta = Math.PI/8;
@@ -124,10 +134,9 @@ function init() {
       0,
       -(dpy.H/4 + std.H/2),
       -(std.H * Math.tan(theta))/2);
-      
+    standBack.castShadow = true;
+    standBack.receiveShadow = true;
     display.add(standBack);
-
-    // 影の設定
   }
   scene.add(display);
 
@@ -138,6 +147,7 @@ function init() {
   );
   desk.rotation.x = -Math.PI/2;
   desk.position.y = -(dpy.H/4 + std.H + std.T/2)
+  desk.receiveShadow = true;
   scene.add(desk);
   // 描画関数の定義
   function render() {
@@ -157,8 +167,8 @@ function init() {
   window.addEventListener("resize", () => {
     canvasHeight = window.innerHeight-nameHeight;
     canvasWidth = window.innerWidth;
-    canvasaspect = canvasWidth / canvasHeight;
-    camera.updateProjectionMaterix();
+    camera.aspect = canvasWidth / canvasHeight;
+    camera.updateProjectionMatrix();
     renderer.setSize(canvasWidth, canvasHeight);
     cssRenderer.setSize(canvasWidth, canvasHeight);
 
